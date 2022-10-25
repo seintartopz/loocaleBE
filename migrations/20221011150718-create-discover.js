@@ -14,6 +14,9 @@ module.exports = {
       location: {
         type: Sequelize.STRING
       },
+			href: {
+				type: Sequelize.STRING
+			},
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

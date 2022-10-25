@@ -15,7 +15,8 @@ module.exports = (sequelize, DataTypes) => {
   };
   discover.init({
     image: DataTypes.STRING,
-    location: DataTypes.STRING
+    location: DataTypes.STRING,
+		href: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'discover',
