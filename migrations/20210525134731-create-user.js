@@ -14,14 +14,21 @@ module.exports = {
       password: {
         type: Sequelize.STRING,
       },
-      fullName: {
+      user_name: {
         type: Sequelize.STRING,
       },
-      avatar: {
+      full_name: {
         type: Sequelize.STRING,
       },
-      phone: {
+      thumbnail: {
+        type: Sequelize.STRING,
+      },
+      OTP: {
         type: Sequelize.INTEGER,
+      },
+      isActive: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
       },
       createdAt: {
         allowNull: false,
