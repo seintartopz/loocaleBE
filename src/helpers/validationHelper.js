@@ -15,6 +15,13 @@ const loginValidation = (data) => {
   return schema.validate(data);
 };
 
+const signUpGoogleValidation = (data) => {
+  const schema = Joi.object({
+    clientID: Joi.string().required(),
+  });
+  return schema.validate(data);
+};
+
 const OTPValidation = (data) => {
   const schema = Joi.object({
     email: Joi.string().required().email(),
@@ -38,4 +45,5 @@ module.exports = {
   OTPValidation,
   updateUserDataValidation,
   loginValidation,
+  signUpGoogleValidation,
 };
