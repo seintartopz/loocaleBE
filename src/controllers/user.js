@@ -10,6 +10,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const secretKey = process.env.SECRETKEY;
 const jwt_decode = require("jwt-decode");
+const { generatePassword } = require("../helpers/passwordHelper");
 
 exports.addEmail = async (request, res) => {
   try {
@@ -25,11 +26,16 @@ exports.addEmail = async (request, res) => {
         email: { [Op.like]: `%${email}%` },
       },
     });
-    // kalo di db ada, tapi password masih null dan active nya masih false, maka resend otp, update otp di db
     if (
+      // If user exists, has password, and isActive
       checkExistingUser &&
-      checkExistingUser.password === null &&
-      checkExistingUser.isActive === false
+      checkExistingUser.password !== null &&
+      checkExistingUser.isActive === true
+    ) {
+      return res.status(400).send(Boom.badRequest("Email Already Exist"));
+    } else if (
+      // user exists in db, but does not have pass or is not active
+      checkExistingUser
     ) {
       sendEmail(email, OTP);
       await user.update(
@@ -49,13 +55,6 @@ exports.addEmail = async (request, res) => {
           users: email,
         },
       });
-    } else if (
-      // kalo di db ada, password ada, dan isActive
-      checkExistingUser &&
-      checkExistingUser.password === null &&
-      checkExistingUser.isActive === true
-    ) {
-      return res.status(400).send(Boom.badRequest("Email Already Exist"));
     } else {
       // kalo di db gaada, maka create ke db, send otp
       sendEmail(email, OTP);
@@ -71,6 +70,52 @@ exports.addEmail = async (request, res) => {
         },
       });
     }
+    //// kalo di db ada, tapi password masih null dan active nya masih false, maka resend otp, update otp di db
+    //if (
+    //  checkExistingUser &&
+    //  checkExistingUser.password === null &&
+    //  checkExistingUser.isActive === false
+    //) {
+    //  sendEmail(email, OTP);
+    //  await user.update(
+    //    {
+    //      OTP,
+    //    },
+    //    {
+    //      where: {
+    //        email: { [Op.like]: `%${email}%` },
+    //      },
+    //    }
+    //  );
+    //  res.send({
+    //    status: "success",
+    //    message: "YOUR OTP HAS BEEN SENT",
+    //    data: {
+    //      users: email,
+    //    },
+    //  });
+    //} else if (
+    //  // kalo di db ada, password ada, dan isActive
+    //  checkExistingUser &&
+    //  checkExistingUser.password !== null &&
+    //  checkExistingUser.isActive === true
+    //) {
+    //  return res.status(400).send(Boom.badRequest("Email Already Exist"));
+    //} else {
+    //  // kalo di db gaada, maka create ke db, send otp
+    //  sendEmail(email, OTP);
+    //  await user.create({
+    //    email,
+    //    OTP,
+    //  });
+    //  res.send({
+    //    status: "success",
+    //    message: "Successfully Create User",
+    //    data: {
+    //      users: email,
+    //    },
+    //  });
+    //}
   } catch (error) {
     console.log(error);
     res.status(500).send({
@@ -441,50 +486,17 @@ exports.signUpGoogle = async (request, res) => {
 
     const OTP = generateOTP();
     const email = decodedClientID.email;
-    console.log(111, email);
     //check Existing Users
     const checkExistingUser = await user.findOne({
       where: {
         email: { [Op.like]: `%${email}%` },
       },
     });
-    // kalo di db ada, tapi password masih null dan active nya masih false, maka resend otp, update otp di db
-    if (
-      checkExistingUser &&
-      checkExistingUser.password === null &&
-      checkExistingUser.isActive === false
-    ) {
-      sendEmail(email, OTP);
-      await user.update(
-        {
-          OTP,
-        },
-        {
-          where: {
-            email: { [Op.like]: `%${email}%` },
-          },
-        }
-      );
-      res.send({
-        status: "success",
-        message: "YOUR OTP HAS BEEN SENT",
-        data: {
-          users: email,
-        },
-      });
-    } else if (
-      // kalo di db ada, password ada, dan isActive
-      checkExistingUser &&
-      checkExistingUser.password === null &&
-      checkExistingUser.isActive === true
-    ) {
-      return res.status(400).send(Boom.badRequest("Email Already Exist"));
-    } else {
-      // kalo di db gaada, maka create ke db, send otp
-      sendEmail(email, OTP);
+    if (!checkExistingUser) {
       await user.create({
         email,
-        OTP,
+        // generate random password biar kaya atlassian (kalo login via google, ya google only. gabisa login via input email biasa)
+        password: generatePassword(),
       });
       res.send({
         status: "success",
@@ -493,7 +505,63 @@ exports.signUpGoogle = async (request, res) => {
           users: email,
         },
       });
+    } else {
+      // TODO: LOGIN VIA GOOGLE
+      res.send({
+        status: "success",
+        message: "Logging user in",
+        data: {
+          users: email,
+        },
+      });
     }
+
+    //// kalo di db ada, tapi password masih null dan active nya masih false, maka resend otp, update otp di db
+    //if (
+    //  checkExistingUser &&
+    //  checkExistingUser.password === null &&
+    //  checkExistingUser.isActive === false
+    //) {
+    //  sendEmail(email, OTP);
+    //  await user.update(
+    //    {
+    //      OTP,
+    //    },
+    //    {
+    //      where: {
+    //        email: { [Op.like]: `%${email}%` },
+    //      },
+    //    }
+    //  );
+    //  res.send({
+    //    status: "success",
+    //    message: "YOUR OTP HAS BEEN SENT",
+    //    data: {
+    //      users: email,
+    //    },
+    //  });
+    //} else if (
+    //  // kalo di db ada, password ada, dan isActive
+    //  checkExistingUser &&
+    //  checkExistingUser.password === null &&
+    //  checkExistingUser.isActive === true
+    //) {
+    //  return res.status(400).send(Boom.badRequest("Email Already Exist"));
+    //} else {
+    //  // kalo di db gaada, maka create ke db, send otp
+    //  sendEmail(email, OTP);
+    //  await user.create({
+    //    email,
+    //    OTP,
+    //  });
+    //  res.send({
+    //    status: "success",
+    //    message: "Successfully Create User",
+    //    data: {
+    //      users: email,
+    //    },
+    //  });
+    //}
   } catch (error) {
     console.log(error);
     res.status(500).send({
