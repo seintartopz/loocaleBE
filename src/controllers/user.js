@@ -184,8 +184,13 @@ exports.signUpForm = async (request, res) => {
         email: { [Op.like]: `%${email}%` },
       },
     });
+    const checkExistingUserName = await user.findOne({
+      where: {
+        user_name: { [Op.like]: `%${user_name}%` },
+      },
+    });
 
-    if (checkExistingUser.user_name === user_name) {
+    if (checkExistingUserName) {
       return res.status(400).send(Boom.badRequest("User Name Already Taken"));
     } else if (checkExistingUser === null) {
       return res.status(400).send(Boom.badRequest("User Not Found"));
@@ -211,6 +216,35 @@ exports.signUpForm = async (request, res) => {
       statusCode: 200,
       message: "Success",
       data: token,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "failed",
+      message: "server error",
+    });
+  }
+};
+
+exports.validateUsername = async (request, res) => {
+  try {
+    const { error } = validationHelper.usernameValidation(request.body);
+    if (error) {
+      return res.status(400).send(Boom.badRequest(error.details[0].message));
+    }
+    const { user_name } = request.body;
+    const checkExistingUserName = await user.findOne({
+      where: {
+        user_name: { [Op.like]: `%${user_name}%` },
+      },
+    });
+
+    if (checkExistingUserName) {
+      return res.status(400).send(Boom.badRequest("User Name Already Taken"));
+    }
+    res.send({
+      statusCode: 200,
+      message: "Username Can Be Used",
     });
   } catch (error) {
     console.log(error);

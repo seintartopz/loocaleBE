@@ -19,6 +19,7 @@ const {
   resendOTP,
   loginUser,
   signUpGoogle,
+  validateUsername,
 } = require("../controllers/user");
 
 // discover api
@@ -37,5 +38,6 @@ router.post("/user/signup/form", signUpForm);
 router.post("/user/resend/otp", resendOTP);
 router.post("/login", loginUser);
 router.post("/user/signup/google", signUpGoogle);
+router.post("/user/validate/username", validateUsername);
 
 module.exports = router;

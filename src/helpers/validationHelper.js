@@ -1,5 +1,9 @@
 const Joi = require("joi");
-
+const strongPasswordRegex =
+  /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
+const stringPassswordError = new Error(
+  "Password must be strong. At least one upper case alphabet. At least one lower case alphabet. At least one digit. At least one special character. Minimum eight in length"
+);
 const addEmailValidation = (data) => {
   const schema = Joi.object({
     email: Joi.string().required().email(),
@@ -10,7 +14,7 @@ const addEmailValidation = (data) => {
 const loginValidation = (data) => {
   const schema = Joi.object({
     email: Joi.string().required().email(),
-    password: Joi.string().required(),
+    password: Joi.string().alphanum().min(8).required(),
   });
   return schema.validate(data);
 };
@@ -35,7 +39,17 @@ const updateUserDataValidation = (data) => {
     email: Joi.string().required().email(),
     full_name: Joi.string().required(),
     user_name: Joi.string().required(),
-    password: Joi.string().required(),
+    password: Joi.string()
+      .regex(strongPasswordRegex)
+      .error(stringPassswordError)
+      .required(),
+  });
+  return schema.validate(data);
+};
+
+const usernameValidation = (data) => {
+  const schema = Joi.object({
+    user_name: Joi.string().required(),
   });
   return schema.validate(data);
 };
@@ -46,4 +60,5 @@ module.exports = {
   updateUserDataValidation,
   loginValidation,
   signUpGoogleValidation,
+  usernameValidation,
 };
