@@ -20,6 +20,7 @@ const {
   loginUser,
   signUpGoogle,
   validateUsername,
+  loginViaGoogle,
 } = require("../controllers/user");
 
 // discover api
@@ -31,13 +32,14 @@ router.post("/connect", uploadFile("background"), createConnectData);
 router.get("/connect", getAllConnectData);
 
 //users api
-router.get("/users", getUser);
+router.get("/users", auth, getUser);
 router.post("/user/email", addEmail);
 router.post("/user/validate/otp", validateOTP);
 router.post("/user/signup/form", signUpForm);
 router.post("/user/resend/otp", resendOTP);
 router.post("/login", loginUser);
 router.post("/user/signup/google", signUpGoogle);
+router.post("/user/login/google", loginViaGoogle);
 router.post("/user/validate/username", validateUsername);
 
 module.exports = router;

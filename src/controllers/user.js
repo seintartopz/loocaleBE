@@ -526,6 +526,13 @@ exports.signUpGoogle = async (request, res) => {
         email: { [Op.like]: `%${email}%` },
       },
     });
+    const token = jwt.sign(
+      {
+        id: checkExistingUser.id,
+      },
+      secretKey
+    );
+
     if (!checkExistingUser) {
       await user.create({
         email,
@@ -537,15 +544,16 @@ exports.signUpGoogle = async (request, res) => {
         message: "Successfully Create User",
         data: {
           users: email,
+          token,
         },
       });
     } else {
-      // TODO: LOGIN VIA GOOGLE
       res.send({
         status: "success",
         message: "Logging user in",
         data: {
           users: email,
+          token,
         },
       });
     }
@@ -596,6 +604,56 @@ exports.signUpGoogle = async (request, res) => {
     //    },
     //  });
     //}
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "failed",
+      message: "server error",
+    });
+  }
+};
+
+exports.loginViaGoogle = async (request, res) => {
+  try {
+    const { clientID } = request.body;
+    const { error } = validationHelper.signUpGoogleValidation(request.body);
+    if (error) {
+      return res.status(400).send(Boom.badRequest(error.details[0].message));
+    }
+    const decodedClientID = jwt_decode(clientID);
+    const email = decodedClientID.email;
+    // validate user
+    const checkExistingUser = await user.findOne({
+      where: {
+        email: { [Op.like]: `%${email}%` },
+      },
+    });
+    if (checkExistingUser === null) {
+      return res.status(400).send(Boom.badRequest("No User Found"));
+    }
+    // else if (checkExistingUser.password === null) {
+    //   return res
+    //     .status(400)
+    //     .send(Boom.badRequest("You haven't validate OTP yet"));
+    // }
+
+    const token = jwt.sign(
+      {
+        id: checkExistingUser.id,
+      },
+      secretKey
+    );
+
+    res.send({
+      status: "success",
+      data: {
+        user: {
+          fullName: checkExistingUser.fullName,
+          email: checkExistingUser.email,
+          token,
+        },
+      },
+    });
   } catch (error) {
     console.log(error);
     res.status(500).send({
