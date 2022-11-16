@@ -24,7 +24,7 @@ const {
 
 // discover api
 router.post("/discover", uploadFile("discoverImage"), createDiscover);
-router.get("/discover", auth, getAllDiscover);
+router.get("/discover", getAllDiscover);
 
 // connect api
 router.post("/connect", uploadFile("background"), createConnectData);
