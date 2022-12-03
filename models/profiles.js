@@ -12,6 +12,10 @@ module.exports = (sequelize, DataTypes) => {
       Profiles.belongsTo(models.User, {
         foreignKey: 'userId',
       });
+      Profiles.belongsToMany(models.Connect, {
+        through: 'ProfileCommunities',
+        as: 'profiles',
+      });
     }
   }
   Profiles.init(

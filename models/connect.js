@@ -9,6 +9,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Connect.belongsToMany(models.Profiles, {
+        through: 'ProfileCommunities',
+        as: 'communities',
+        foreignKey: 'connectId',
+      });
     }
   }
   Connect.init(
