@@ -1,15 +1,12 @@
-const express = require("express");
+const express = require('express');
 
 const router = express.Router();
 
-const { auth } = require("../middlewares/auth");
-const { uploadFile } = require("../middlewares/uploadFile");
+const { auth } = require('../middlewares/auth');
+const { uploadFile } = require('../middlewares/uploadFile');
 
-const { createDiscover, getAllDiscover } = require("../controllers/discover");
-const {
-  createConnectData,
-  getAllConnectData,
-} = require("../controllers/connect");
+const { createDiscover, getAllDiscover } = require('../controllers/discover');
+const { createConnectData, getAllConnectData } = require('../controllers/connect');
 
 const {
   getUser,
@@ -21,25 +18,31 @@ const {
   signUpGoogle,
   validateUsername,
   loginViaGoogle,
-} = require("../controllers/user");
+} = require('../controllers/user');
+
+const { getProvinces, getCities } = require('../controllers/area');
 
 // discover api
-router.post("/discover", uploadFile("discoverImage"), createDiscover);
-router.get("/discover", getAllDiscover);
+router.post('/discover', uploadFile('discoverImage'), createDiscover);
+router.get('/discover', getAllDiscover);
 
 // connect api
-router.post("/connect", uploadFile("background"), createConnectData);
-router.get("/connect", getAllConnectData);
+router.post('/connect', uploadFile('background'), createConnectData);
+router.get('/connect', getAllConnectData);
 
 //users api
-router.get("/users", auth, getUser);
-router.post("/user/email", addEmail);
-router.post("/user/validate/otp", validateOTP);
-router.post("/user/signup/form", signUpForm);
-router.post("/user/resend/otp", resendOTP);
-router.post("/login", loginUser);
-router.post("/user/signup/google", signUpGoogle);
-router.post("/user/login/google", loginViaGoogle);
-router.post("/user/validate/username", validateUsername);
+router.get('/users', auth, getUser);
+router.post('/user/email', addEmail);
+router.post('/user/validate/otp', validateOTP);
+router.post('/user/signup/form', signUpForm);
+router.post('/user/resend/otp', resendOTP);
+router.post('/login', loginUser);
+router.post('/user/signup/google', signUpGoogle);
+router.post('/user/login/google', loginViaGoogle);
+router.post('/user/validate/username', validateUsername);
+
+//area api
+router.get('/provinces', getProvinces);
+router.post('/cities', getCities);
 
 module.exports = router;

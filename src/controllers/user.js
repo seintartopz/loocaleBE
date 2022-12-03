@@ -1,16 +1,16 @@
-const { Op } = require("sequelize");
-const { user } = require("../../models");
-const fs = require("fs");
-const Boom = require("boom");
-const validationHelper = require("../helpers/validationHelper");
-const { generateOTP } = require("../helpers/otpHelper");
-const { sendEmail } = require("../helpers/sendEmailHelper");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
+const { Op } = require('sequelize');
+const { User } = require('../../models');
+const fs = require('fs');
+const Boom = require('boom');
+const validationHelper = require('../helpers/validationHelper');
+const { generateOTP } = require('../helpers/otpHelper');
+const { sendEmail } = require('../helpers/sendEmailHelper');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 const secretKey = process.env.SECRETKEY;
-const jwt_decode = require("jwt-decode");
-const { generatePassword } = require("../helpers/passwordHelper");
+const jwt_decode = require('jwt-decode');
+const { generatePassword } = require('../helpers/passwordHelper');
 
 exports.addEmail = async (request, res) => {
   try {
@@ -21,7 +21,7 @@ exports.addEmail = async (request, res) => {
     const OTP = generateOTP();
     const email = request.body.email;
     //check Existing Users
-    const checkExistingUser = await user.findOne({
+    const checkExistingUser = await User.findOne({
       where: {
         email: { [Op.like]: `%${email}%` },
       },
@@ -32,13 +32,13 @@ exports.addEmail = async (request, res) => {
       checkExistingUser.password !== null &&
       checkExistingUser.isActive === true
     ) {
-      return res.status(400).send(Boom.badRequest("Email Already Exist"));
+      return res.status(400).send(Boom.badRequest('Email Already Exist'));
     } else if (
       // user exists in db, but does not have pass or is not active
       checkExistingUser
     ) {
       sendEmail(email, OTP);
-      await user.update(
+      await User.update(
         {
           OTP,
         },
@@ -49,8 +49,8 @@ exports.addEmail = async (request, res) => {
         }
       );
       res.send({
-        status: "success",
-        message: "YOUR OTP HAS BEEN SENT",
+        status: 'success',
+        message: 'YOUR OTP HAS BEEN SENT',
         data: {
           users: email,
         },
@@ -58,13 +58,13 @@ exports.addEmail = async (request, res) => {
     } else {
       // kalo di db gaada, maka create ke db, send otp
       sendEmail(email, OTP);
-      await user.create({
+      await User.create({
         email,
         OTP,
       });
       res.send({
-        status: "success",
-        message: "Successfully Create User",
+        status: 'success',
+        message: 'Successfully Create User',
         data: {
           users: email,
         },
@@ -119,8 +119,8 @@ exports.addEmail = async (request, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "failed",
-      message: "server error",
+      status: 'failed',
+      message: 'server error',
     });
   }
 };
@@ -135,14 +135,14 @@ exports.validateOTP = async (request, res) => {
     const email = request.body.email;
     const OTP = request.body.OTP;
     // validate otp
-    const checkExistingUser = await user.findOne({
+    const checkExistingUser = await User.findOne({
       where: {
         email: { [Op.like]: `%${email}%` },
       },
     });
 
     if (checkExistingUser.OTP === OTP) {
-      user.update(
+      User.update(
         {
           isActive: true,
         },
@@ -154,18 +154,18 @@ exports.validateOTP = async (request, res) => {
         }
       );
     } else {
-      return res.status(400).send(Boom.badRequest("OTP IS NOT VALID"));
+      return res.status(400).send(Boom.badRequest('OTP IS NOT VALID'));
     }
 
     res.send({
-      status: "success",
-      message: "Validate OTP is Success, you good to go",
+      status: 'success',
+      message: 'Validate OTP is Success, you good to go',
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "failed",
-      message: "server error",
+      status: 'failed',
+      message: 'server error',
     });
   }
 };
@@ -179,23 +179,23 @@ exports.signUpForm = async (request, res) => {
 
     const { email, full_name, user_name, password } = request.body;
     const passwordHashed = await bcrypt.hash(password, 10);
-    const checkExistingUser = await user.findOne({
+    const checkExistingUser = await User.findOne({
       where: {
         email: { [Op.like]: `%${email}%` },
       },
     });
-    const checkExistingUserName = await user.findOne({
+    const checkExistingUserName = await User.findOne({
       where: {
         user_name: { [Op.like]: `%${user_name}%` },
       },
     });
 
     if (checkExistingUserName) {
-      return res.status(400).send(Boom.badRequest("User Name Already Taken"));
+      return res.status(400).send(Boom.badRequest('User Name Already Taken'));
     } else if (checkExistingUser === null) {
-      return res.status(400).send(Boom.badRequest("User Not Found"));
+      return res.status(400).send(Boom.badRequest('User Not Found'));
     } else {
-      await user.update(
+      await User.update(
         {
           full_name,
           user_name,
@@ -208,20 +208,17 @@ exports.signUpForm = async (request, res) => {
         }
       );
     }
-    const token = jwt.sign(
-      { id: checkExistingUser.id, email: checkExistingUser.email },
-      secretKey
-    );
+    const token = jwt.sign({ id: checkExistingUser.id, email: checkExistingUser.email }, secretKey);
     res.send({
       statusCode: 200,
-      message: "Success",
+      message: 'Success',
       data: token,
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "failed",
-      message: "server error",
+      status: 'failed',
+      message: 'server error',
     });
   }
 };
@@ -233,24 +230,24 @@ exports.validateUsername = async (request, res) => {
       return res.status(400).send(Boom.badRequest(error.details[0].message));
     }
     const { user_name } = request.body;
-    const checkExistingUserName = await user.findOne({
+    const checkExistingUserName = await User.findOne({
       where: {
         user_name: { [Op.like]: `%${user_name}%` },
       },
     });
 
     if (checkExistingUserName) {
-      return res.status(400).send(Boom.badRequest("User Name Already Taken"));
+      return res.status(400).send(Boom.badRequest('User Name Already Taken'));
     }
     res.send({
       statusCode: 200,
-      message: "Username Can Be Used",
+      message: 'Username Can Be Used',
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "failed",
-      message: "server error",
+      status: 'failed',
+      message: 'server error',
     });
   }
 };
@@ -266,13 +263,13 @@ exports.resendOTP = async (request, res) => {
     const OTP = generateOTP();
 
     // validate user
-    const checkExistingUser = await user.findOne({
+    const checkExistingUser = await User.findOne({
       where: {
         email: { [Op.like]: `%${email}%` },
       },
     });
     if (checkExistingUser === null) {
-      return res.status(400).send(Boom.badRequest("User Not Found"));
+      return res.status(400).send(Boom.badRequest('User Not Found'));
     } else if (checkExistingUser.isActive === false) {
       sendEmail(email, OTP);
       await user.update(
@@ -288,28 +285,28 @@ exports.resendOTP = async (request, res) => {
     }
 
     res.send({
-      status: "success",
-      message: "Your new OTP Has Sent to Your Email ",
+      status: 'success',
+      message: 'Your new OTP Has Sent to Your Email ',
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "failed",
-      message: "server error",
+      status: 'failed',
+      message: 'server error',
     });
   }
 };
 
 exports.getUser = async (req, res) => {
   try {
-    const data = await user.findAll({
+    const data = await User.findAll({
       attributes: {
-        exclude: ["createdAt", "updatedAt", "password"],
+        exclude: ['createdAt', 'updatedAt', 'password'],
       },
     });
 
     res.send({
-      status: "success",
+      status: 'success',
       data: {
         users: data,
       },
@@ -317,8 +314,8 @@ exports.getUser = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "failed",
-      message: "server error",
+      status: 'failed',
+      message: 'server error',
     });
   }
 };
@@ -327,31 +324,31 @@ exports.getUserDetail = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const data = await user.findOne({
+    const data = await User.findOne({
       where: {
         id,
       },
       attributes: {
-        exclude: ["createdAt", "updatedAt"],
+        exclude: ['createdAt', 'updatedAt'],
       },
     });
 
     if (!data) {
       return res.send({
-        status: "failed",
-        message: "data not found",
+        status: 'failed',
+        message: 'data not found',
       });
     }
 
     res.status(200).send({
-      status: "success",
+      status: 'success',
       data: { users: data },
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "failed",
-      message: "server error",
+      status: 'failed',
+      message: 'server error',
     });
   }
 };
@@ -360,36 +357,36 @@ exports.deleteUser = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const users = await user.findOne({
+    const users = await User.findOne({
       where: {
         id,
       },
     });
 
     if (users) {
-      await user.destroy({
+      await User.destroy({
         where: {
           id,
         },
       });
 
       return res.status(200).send({
-        status: "success",
-        message: "delete success",
+        status: 'success',
+        message: 'delete success',
         data: {
           id,
         },
       });
     }
     res.status(404).send({
-      status: "failed",
-      message: "no data found",
+      status: 'failed',
+      message: 'no data found',
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "failed",
-      message: "server error",
+      status: 'failed',
+      message: 'server error',
     });
   }
 };
@@ -398,12 +395,12 @@ exports.updateProfile = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const finduser = await user.findOne({ where: { id } });
+    const finduser = await User.findOne({ where: { id } });
 
     if (!finduser) {
       return res.send({
-        status: "failed",
-        message: "data not found",
+        status: 'failed',
+        message: 'data not found',
       });
     }
 
@@ -425,13 +422,13 @@ exports.updateProfile = async (req, res) => {
       where: { id },
     });
 
-    const updateUser = await user.findOne({
+    const updateUser = await User.findOne({
       where: { id },
-      attributes: { exclude: ["updatedAt", "createdAt"] },
+      attributes: { exclude: ['updatedAt', 'createdAt'] },
     });
 
     res.status(200).send({
-      status: "Success",
+      status: 'Success',
       data: {
         user: {
           fullName: updateUser.fullName,
@@ -444,43 +441,47 @@ exports.updateProfile = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "failed",
-      message: "server error ",
+      status: 'failed',
+      message: 'server error ',
     });
   }
 };
 
 exports.loginUser = async (request, res) => {
   try {
-    const { email, password } = request.body;
+    const { email, password, username } = request.body;
     const { error } = validationHelper.loginValidation(request.body);
     if (error) {
       return res.status(400).send(Boom.badRequest(error.details[0].message));
     }
 
     // validate user
-    const checkExistingUser = await user.findOne({
+    const checkExistingUserEmail = await User.findOne({
       where: {
         email: { [Op.like]: `%${email}%` },
       },
     });
-    if (checkExistingUser === null) {
-      return res.status(400).send(Boom.badRequest("No User Found"));
-    } else if (checkExistingUser.password === null) {
-      return res
-        .status(400)
-        .send(Boom.badRequest("You haven't validate OTP yet"));
+    console.log(111, checkExistingUserEmail);
+    const checkExistingUserName = await User.findOne({
+      where: {
+        user_name: { [Op.like]: `%${username}%` },
+      },
+    });
+    console.log(2222, checkExistingUserName.password);
+
+    if (checkExistingUserEmail === null && checkExistingUserName === null) {
+      return res.status(400).send(Boom.badRequest('No User Found'));
+    } else if (checkExistingUserEmail.password === null || checkExistingUserName.password === null) {
+      return res.status(400).send(Boom.badRequest("You haven't validate OTP yet"));
     }
 
     const isValidPassword = await bcrypt.compare(
       password,
-      checkExistingUser.password
+      checkExistingUserEmail.password || checkExistingUserName.password
     );
 
     if (!isValidPassword) {
-      return res
-        .status(400)
-        .send(Boom.badRequest("Email and Password don't match"));
+      return res.status(400).send(Boom.badRequest("Email and Password don't match"));
     }
 
     const token = jwt.sign(
@@ -491,11 +492,9 @@ exports.loginUser = async (request, res) => {
     );
 
     res.send({
-      status: "success",
+      status: 'success',
       data: {
         user: {
-          fullName: checkExistingUser.fullName,
-          email: checkExistingUser.email,
           token,
         },
       },
@@ -503,8 +502,8 @@ exports.loginUser = async (request, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "failed",
-      message: "server error",
+      status: 'failed',
+      message: 'server error',
     });
   }
 };
@@ -521,7 +520,7 @@ exports.signUpGoogle = async (request, res) => {
     const OTP = generateOTP();
     const email = decodedClientID.email;
     //check Existing Users
-    const checkExistingUser = await user.findOne({
+    const checkExistingUser = await User.findOne({
       where: {
         email: { [Op.like]: `%${email}%` },
       },
@@ -534,14 +533,14 @@ exports.signUpGoogle = async (request, res) => {
     );
 
     if (!checkExistingUser) {
-      await user.create({
+      await User.create({
         email,
         // generate random password biar kaya atlassian (kalo login via google, ya google only. gabisa login via input email biasa)
         password: generatePassword(),
       });
       res.send({
-        status: "success",
-        message: "Successfully Create User",
+        status: 'success',
+        message: 'Successfully Create User',
         data: {
           users: email,
           token,
@@ -549,8 +548,8 @@ exports.signUpGoogle = async (request, res) => {
       });
     } else {
       res.send({
-        status: "success",
-        message: "Logging user in",
+        status: 'success',
+        message: 'Logging user in',
         data: {
           users: email,
           token,
@@ -607,8 +606,8 @@ exports.signUpGoogle = async (request, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "failed",
-      message: "server error",
+      status: 'failed',
+      message: 'server error',
     });
   }
 };
@@ -623,13 +622,13 @@ exports.loginViaGoogle = async (request, res) => {
     const decodedClientID = jwt_decode(clientID);
     const email = decodedClientID.email;
     // validate user
-    const checkExistingUser = await user.findOne({
+    const checkExistingUser = await User.findOne({
       where: {
         email: { [Op.like]: `%${email}%` },
       },
     });
     if (checkExistingUser === null) {
-      return res.status(400).send(Boom.badRequest("No User Found"));
+      return res.status(400).send(Boom.badRequest('No User Found'));
     }
     // else if (checkExistingUser.password === null) {
     //   return res
@@ -645,10 +644,9 @@ exports.loginViaGoogle = async (request, res) => {
     );
 
     res.send({
-      status: "success",
+      status: 'success',
       data: {
         user: {
-          fullName: checkExistingUser.fullName,
           email: checkExistingUser.email,
           token,
         },
@@ -657,8 +655,8 @@ exports.loginViaGoogle = async (request, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "failed",
-      message: "server error",
+      status: 'failed',
+      message: 'server error',
     });
   }
 };
