@@ -57,6 +57,17 @@ const getCities = (data) => {
   });
   return schema.validate(data);
 };
+
+const postUserProfileData = (data) => {
+  const schema = Joi.object({
+    userId: Joi.number().required(),
+    province: Joi.string().required(),
+    city: Joi.string().required(),
+    connectId: Joi.number().required(),
+  });
+  return schema.validate(data);
+};
+
 module.exports = {
   addEmailValidation,
   OTPValidation,
@@ -65,4 +76,5 @@ module.exports = {
   signUpGoogleValidation,
   usernameValidation,
   getCities,
+  postUserProfileData,
 };

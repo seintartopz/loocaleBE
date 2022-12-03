@@ -4,6 +4,7 @@ const router = express.Router();
 
 const { auth } = require('../middlewares/auth');
 const { uploadFile } = require('../middlewares/uploadFile');
+const { uploadUserPicture } = require('../middlewares/uploadUserPicture');
 
 const { createDiscover, getAllDiscover } = require('../controllers/discover');
 const { createConnectData, getAllConnectData } = require('../controllers/connect');
@@ -21,6 +22,8 @@ const {
 } = require('../controllers/user');
 
 const { getProvinces, getCities } = require('../controllers/area');
+
+const { postUserProfileData } = require('../controllers/profile');
 
 // discover api
 router.post('/discover', uploadFile('discoverImage'), createDiscover);
@@ -44,5 +47,8 @@ router.post('/user/validate/username', validateUsername);
 //area api
 router.get('/provinces', getProvinces);
 router.post('/cities', getCities);
+
+// Profiles API
+router.post('/userprofiles', uploadUserPicture('profileImage'), postUserProfileData);
 
 module.exports = router;
