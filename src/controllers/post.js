@@ -13,7 +13,7 @@ exports.postText = async (request, res) => {
     return res.status(400).send(Boom.badRequest(error.details[0].message));
   }
   try {
-    const { postText, location, categories } = request.body;
+    const { postText, location, categories, location_detail} = request.body;
     const userId = request.userId
     let tmpArr = []
     let tmpArr2 = []
@@ -25,7 +25,8 @@ exports.postText = async (request, res) => {
       userId,
       postText,
       location,
-      liked: 0
+      liked: 0,
+      location_detail
     });
 
     categories.reduce(async (result, item) => {

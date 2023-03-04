@@ -86,6 +86,7 @@ const createPostTextValidation = (data) => {
   const schema = Joi.object({
     postText: Joi.string().required(),
     location: Joi.string().required(),
+    location_detail: Joi.string().optional().allow(''),
     categories: Joi.array().required(),
   });
   return schema.validate(data);
