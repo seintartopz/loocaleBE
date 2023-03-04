@@ -16,7 +16,7 @@ exports.postUserProfileData = async (request, res) => {
     let tmpArr2 = []
     let image;
     if (request.files.profileImage == null) {
-      image = defaultProfilePicture;
+      image = "";
     } else {
       image = request.files.profileImage[0].filename;
     }
@@ -26,7 +26,7 @@ exports.postUserProfileData = async (request, res) => {
 
     const createProfile = await Profiles.create({
       userId,
-      avatar: baseUrlFile + "user-profile-picture/" + image,
+      avatar: image ? baseUrlFile + "user-profile-picture/" + image : "",
       province,
       city,
     });
