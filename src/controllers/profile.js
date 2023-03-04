@@ -33,7 +33,7 @@ exports.postUserProfileData = async (request, res) => {
 
     connectId.reduce(async (result, item) => {
       let tmpData;
-        tmpData = {connectId:item, postId: createProfile.id}
+        tmpData = {connectId:item, profileId: createProfile.id}
         tmpArr2.push(tmpData)
       return Promise.resolve(result);
       }, Promise.resolve([]));
