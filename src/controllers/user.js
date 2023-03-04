@@ -23,7 +23,7 @@ exports.addEmail = async (request, res) => {
     //check Existing Users
     const checkExistingUser = await User.findOne({
       where: {
-        email: { email },
+        email: email,
       },
     });
     if (
@@ -44,7 +44,7 @@ exports.addEmail = async (request, res) => {
         },
         {
           where: {
-            email: { email },
+            email: email,
           },
         }
       );
@@ -83,7 +83,7 @@ exports.addEmail = async (request, res) => {
     //    },
     //    {
     //      where: {
-    //        email: { email },
+    //        email: email,
     //      },
     //    }
     //  );
@@ -137,7 +137,7 @@ exports.validateOTP = async (request, res) => {
     // validate otp
     const checkExistingUser = await User.findOne({
       where: {
-        email: { email },
+        email: email,
       },
     });
 
@@ -148,7 +148,7 @@ exports.validateOTP = async (request, res) => {
         },
         {
           where: {
-            email: { email },
+            email: email,
             OTP: { [Op.like]: `%${OTP}%` },
           },
         }
@@ -181,7 +181,7 @@ exports.signUpForm = async (request, res) => {
     const passwordHashed = await bcrypt.hash(password, 10);
     const checkExistingUser = await User.findOne({
       where: {
-        email: { email },
+        email: email,
       },
     });
     const checkExistingUserName = await User.findOne({
@@ -203,7 +203,7 @@ exports.signUpForm = async (request, res) => {
         },
         {
           where: {
-            email: { email },
+            email: email,
           },
         }
       );
@@ -273,7 +273,7 @@ exports.resendOTP = async (request, res) => {
     // validate user
     const checkExistingUser = await User.findOne({
       where: {
-        email: { email },
+        email: email,
       },
     });
     if (checkExistingUser === null) {
@@ -286,7 +286,7 @@ exports.resendOTP = async (request, res) => {
         },
         {
           where: {
-            email: { email },
+            email: email,
           },
         }
       );
@@ -468,7 +468,7 @@ const validateUsernameOrEmail = async (email, username) => {
   if (email) {
     response = await User.findOne({
       where: {
-        email: { email },
+        email: email,
       },
     });
 
@@ -553,7 +553,7 @@ exports.signUpGoogle = async (request, res) => {
     //check Existing Users
     const checkExistingUser = await User.findOne({
       where: {
-        email: { email },
+        email: email,
       },
     });
     let token;
@@ -617,7 +617,7 @@ exports.signUpGoogle = async (request, res) => {
     //    },
     //    {
     //      where: {
-    //        email: { email },
+    //        email: email,
     //      },
     //    }
     //  );
@@ -671,7 +671,7 @@ exports.loginViaGoogle = async (request, res) => {
     // validate user
     const checkExistingUser = await User.findOne({
       where: {
-        email: { email },
+        email: email,
       },
     });
     if (checkExistingUser === null) {
@@ -717,7 +717,7 @@ exports.forgotPassword = async (request, res) => {
 
     const checkExistingUser = await User.findOne({
       where: {
-        email: { email },
+        email: email,
       },
     });
     if (checkExistingUser === null) {
