@@ -58,6 +58,13 @@ const getCities = (data) => {
   return schema.validate(data);
 };
 
+const getCitiesName = (data) => {
+  const schema = Joi.object({
+    name: Joi.string().required(),
+  });
+  return schema.validate(data);
+};
+
 const postUserProfileData = (data) => {
   const schema = Joi.object({
     province: Joi.string().required(),
@@ -111,5 +118,6 @@ module.exports = {
   resetPassValidation,
   createPostTextValidation,
   likePostValidation,
-  createCommentTextValidation
+  createCommentTextValidation,
+  getCitiesName
 };

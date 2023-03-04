@@ -25,7 +25,7 @@ const {
   getUserDetail
 } = require('../controllers/user');
 
-const { getProvinces, getCities } = require('../controllers/area');
+const { getProvinces, getCities, getCitiesName } = require('../controllers/area');
 
 const { postUserProfileData } = require('../controllers/profile');
 
@@ -57,6 +57,7 @@ router.post('/user/reset-password', resetPassword);
 //area api
 router.get('/provinces', getProvinces);
 router.get('/cities', getCities);
+router.get('/cities-name', getCitiesName);
 
 // Profiles API
 router.post('/userprofiles', uploadUserPicture('profileImage'), auth, postUserProfileData);

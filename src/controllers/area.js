@@ -49,3 +49,32 @@ exports.getCities = async (request, res) => {
     });
   }
 };
+
+exports.getCitiesName = async (request, res) => {
+  try {
+    const { error } = validationHelper.getCitiesName(request.query);
+    if (error) {
+      return res.status(400).send(Boom.badRequest(error.details[0].message));
+    }
+    const searchParams = request.query.name;
+    const getData = areaConfig.cities;
+    let data = [];
+    getData.filter((item) => {
+      if (item.name.toLowerCase().indexOf(searchParams.toLowerCase()) === 0) {
+        data.push(item);
+      }
+      return data.sort();
+    });
+    res.send({
+      statusCode: '200',
+      status: 'success',
+      data,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: 'failed',
+      message: 'server error',
+    });
+  }
+};
