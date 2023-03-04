@@ -17,9 +17,7 @@ exports.postText = async (request, res) => {
     const userId = request.userId
     let tmpArr = []
     let tmpArr2 = []
-
-    const postedMedia = await __postMediaToDB(request)
-    const idPostedMedia = postedMedia.map(item=>(item.id))
+    let response 
 
     const createProfile = await Post.create({
       userId,
@@ -29,6 +27,19 @@ exports.postText = async (request, res) => {
       location_detail
     });
 
+    if (request.files.media_files) {
+    const postedMedia = await __postMediaToDB(request)
+    const idPostedMedia = postedMedia.map(item=>(item.id))
+    idPostedMedia.reduce(async (result, item) => {
+      let tmpData;
+        tmpData = {mediaId:item, postId: createProfile.id}
+        tmpArr.push(tmpData)
+      return Promise.resolve(result);
+      }, Promise.resolve([]));
+    response =  await PostMedia.bulkCreate(tmpArr);
+    }
+
+
     categories.reduce(async (result, item) => {
       let tmpData;
         tmpData = {connectId:item, postId: createProfile.id}
@@ -36,15 +47,9 @@ exports.postText = async (request, res) => {
       return Promise.resolve(result);
       }, Promise.resolve([]));
 
-    await PostCategories.bulkCreate(tmpArr2);
+    response = await PostCategories.bulkCreate(tmpArr2);
 
-    idPostedMedia.reduce(async (result, item) => {
-      let tmpData;
-        tmpData = {mediaId:item, postId: createProfile.id}
-        tmpArr.push(tmpData)
-      return Promise.resolve(result);
-      }, Promise.resolve([]));
-    const response =  await PostMedia.bulkCreate(tmpArr);
+ 
 
 
     res.status(200).send({
