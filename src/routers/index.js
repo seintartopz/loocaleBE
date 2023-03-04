@@ -7,7 +7,7 @@ const { uploadFile } = require('../middlewares/uploadFile');
 const { uploadUserPicture } = require('../middlewares/uploadUserPicture');
 const { uploadPostsMedia } = require('../middlewares/uploadPostMedia');
 
-const { createDiscover, getAllDiscover } = require('../controllers/discover');
+const { createDiscover, getAllDiscover, getDiscoverPageOptions } = require('../controllers/discover');
 const { createConnectData, getAllConnectData } = require('../controllers/connect');
 
 const {
@@ -58,6 +58,9 @@ router.post('/user/reset-password', resetPassword);
 router.get('/provinces', getProvinces);
 router.get('/cities', getCities);
 router.get('/cities-name', getCitiesName);
+
+// Discover Page Api
+router.get("/discover-page/options", getDiscoverPageOptions)
 
 // Profiles API
 router.post('/userprofiles', uploadUserPicture('profileImage'), auth, postUserProfileData);

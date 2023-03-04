@@ -1,4 +1,7 @@
 const { discover } = require("../../models");
+const areaConfig = require('../../assets/area.json');
+const { Connect } = require('../../models');
+
 
 exports.createDiscover = async (req, res) => {
   try {
@@ -45,3 +48,31 @@ exports.getAllDiscover = async (req, res) => {
     });
   }
 };
+
+exports.getDiscoverPageOptions = async (req, res) => {
+  try {
+    const searchParams = req.query.searchValue;
+    const getCities = areaConfig.cities;
+    const getConnect = await Connect.findAll()
+    const citiesAndConnect = getCities.map((city) => city.name).concat(getConnect.map((connectValue) => connectValue.title))
+
+    let data = [];
+    citiesAndConnect.filter((item) => {
+      if (item.toLowerCase().indexOf(searchParams.toLowerCase()) === 0) {
+        data.push(item);
+      }
+      return data.sort();
+    });
+    return res.send({
+      statusCode: '200',
+      status: 'success',
+      data,
+    });
+  } catch (error) {
+    res.status(500).send({
+      statusCode: 500,
+      status: "Failed",
+      message: "Internal Server Error",
+    });
+  }
+}
