@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Post, User, Comments, Media, PostMedia, PostCategories, Connect, Likes, Profiles } = require('../../models');
+const { Post, User, Comments, Media, PostMedia, PostCategories, Connect, Likes, Profiles, sequelize } = require('../../models');
 const fs = require('fs');
 const Boom = require('boom');
 const validationHelper = require('../helpers/validationHelper');
@@ -13,11 +13,11 @@ exports.postText = async (request, res) => {
     return res.status(400).send(Boom.badRequest(error.details[0].message));
   }
   try {
-    const { postText, location, categories, location_detail} = request.body;
+    const { postText, location, categories, location_detail } = request.body;
     const userId = request.userId
     let tmpArr = []
     let tmpArr2 = []
-    let response 
+    let response
 
     const createProfile = await Post.create({
       userId,
@@ -28,28 +28,28 @@ exports.postText = async (request, res) => {
     });
 
     if (request.files.media_files) {
-    const postedMedia = await __postMediaToDB(request)
-    const idPostedMedia = postedMedia.map(item=>(item.id))
-    idPostedMedia.reduce(async (result, item) => {
-      let tmpData;
-        tmpData = {mediaId:item, postId: createProfile.id}
+      const postedMedia = await __postMediaToDB(request)
+      const idPostedMedia = postedMedia.map(item => (item.id))
+      idPostedMedia.reduce(async (result, item) => {
+        let tmpData;
+        tmpData = { mediaId: item, postId: createProfile.id }
         tmpArr.push(tmpData)
-      return Promise.resolve(result);
+        return Promise.resolve(result);
       }, Promise.resolve([]));
-    response =  await PostMedia.bulkCreate(tmpArr);
+      response = await PostMedia.bulkCreate(tmpArr);
     }
 
 
     categories.reduce(async (result, item) => {
       let tmpData;
-        tmpData = {connectId:item, postId: createProfile.id}
-        tmpArr2.push(tmpData)
+      tmpData = { connectId: item, postId: createProfile.id }
+      tmpArr2.push(tmpData)
       return Promise.resolve(result);
-      }, Promise.resolve([]));
+    }, Promise.resolve([]));
 
     response = await PostCategories.bulkCreate(tmpArr2);
 
- 
+
 
 
     res.status(200).send({
@@ -68,26 +68,23 @@ exports.postText = async (request, res) => {
 
 exports.getAllPosts = async (request, res) => {
   try {
-    const { connectId, location } = request.query;
+    const { searchValue } = request.query;
     const userId = request.userId
-    let getPosts
-    if (location && location !== null) {
+    let getPosts;
+    if (!searchValue) {
       getPosts = await Post.findAll({
-        where: {
-          location: location,
-        },
         include: [
           {
             model: Connect,
-            as : 'Categories',
-            attributes : {
-              exclude : ['createdAt', 'updatedAt']
+            as: 'Categories',
+            attributes: {
+              exclude: ['createdAt', 'updatedAt']
             }
           },
           {
             model: User,
-            attributes : {
-              exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password']
+            attributes: {
+              exclude: ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password']
             }
           },
           {
@@ -95,57 +92,129 @@ exports.getAllPosts = async (request, res) => {
             include: [
               {
                 model: User,
-                attributes : {
-                  exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password'],
+                attributes: {
+                  exclude: ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password'],
                 },
               },
             ],
-          order: [["updatedAt", "desc"]],
-            attributes : {
-              exclude : [ 'postId', 'updatedAt', ]
+            order: [["updatedAt", "desc"]],
+            attributes: {
+              exclude: ['postId', 'updatedAt',]
             }
           },
           {
             model: Media,
-            as : 'medias',
-            attributes : {
-              exclude : ['createdAt', 'updatedAt', 'id']
+            as: 'medias',
+            attributes: {
+              exclude: ['createdAt', 'updatedAt', 'id']
             }
           },
           {
             model: Likes,
-            attributes : {
-              exclude : ['createdAt', 'updatedAt']
+            attributes: {
+              exclude: ['createdAt', 'updatedAt']
             }
           },
         ],
         order: [["updatedAt", "desc"]],
       });
-      res.status(200).send({
+      return res.status(200).send({
         statusCode: '200',
         status: 'success input data',
         data: getPosts,
       });
-    } else if (connectId) {
+    }
+    let connectId;
+
+    getPosts = await Post.findAll({
+      where: {
+        location: searchValue,
+      },
+      include: [
+        {
+          model: Connect,
+          as: 'Categories',
+          attributes: {
+            exclude: ['createdAt', 'updatedAt']
+          }
+        },
+        {
+          model: User,
+          attributes: {
+            exclude: ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password']
+          }
+        },
+        {
+          model: Comments,
+          include: [
+            {
+              model: User,
+              attributes: {
+                exclude: ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password'],
+              },
+            },
+          ],
+          order: [["updatedAt", "desc"]],
+          attributes: {
+            exclude: ['postId', 'updatedAt',]
+          }
+        },
+        {
+          model: Media,
+          as: 'medias',
+          attributes: {
+            exclude: ['createdAt', 'updatedAt', 'id']
+          }
+        },
+        {
+          model: Likes,
+          attributes: {
+            exclude: ['createdAt', 'updatedAt']
+          }
+        },
+      ],
+      order: [["updatedAt", "desc"]],
+    });
+    if (getPosts.length) {
+      return res.status(200).send({
+        statusCode: '200',
+        status: 'success input data',
+        data: getPosts,
+      });
+    }
+    connectId = await Connect.findOne({
+      where: {
+        title: searchValue
+      }
+    })
+    if (connectId) {
+      const getPostCategories = await PostCategories.findAll({
+        attributes: ["postId"],
+        where: {
+          connectId: connectId.id,
+        }
+      })
+      const postIds = getPostCategories.map((category) => String(category.postId))
       getPosts = await Post.findAll({
+        where: {
+          id: {
+            [Op.in]: postIds
+          }
+        },
         include: [
           {
             model: Connect,
-            as : 'Categories',
-            through : {          
-              where: {
-              connectId: connectId,
-            },
-          },
-  
-            attributes : {
-              exclude : ['createdAt', 'updatedAt']
+            as: 'Categories',
+
+
+            attributes: {
+              exclude: ['createdAt', 'updatedAt']
             }
           },
           {
             model: User,
-            attributes : {
-              exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password']
+            attributes: {
+              exclude: ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password']
             }
           },
           {
@@ -153,89 +222,44 @@ exports.getAllPosts = async (request, res) => {
             include: [
               {
                 model: User,
-                attributes : {
-                  exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password'],
+                attributes: {
+                  exclude: ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password'],
                 },
               },
             ],
-          order: [["updatedAt", "desc"]],
-            attributes : {
-              exclude : [ 'postId', 'updatedAt', ]
+            order: [["updatedAt", "desc"]],
+            attributes: {
+              exclude: ['postId', 'updatedAt',]
             }
           },
           {
             model: Media,
-            as : 'medias',
-            attributes : {
-              exclude : ['createdAt', 'updatedAt', 'id']
+            as: 'medias',
+            attributes: {
+              exclude: ['createdAt', 'updatedAt', 'id']
             }
           },
           {
             model: Likes,
-            attributes : {
-              exclude : ['createdAt', 'updatedAt']
+            attributes: {
+              exclude: ['createdAt', 'updatedAt']
             }
           },
         ],
         order: [["updatedAt", "desc"]],
       });
-      res.status(200).send({
+      return res.status(200).send({
         statusCode: '200',
         status: 'success input data',
         data: getPosts,
       })
     } else {
-      getPosts = await Post.findAll({
-        include: [
-          {
-            model: Connect,
-            as : 'Categories',
-            attributes : {
-              exclude : ['createdAt', 'updatedAt']
-            }
-          },
-          {
-            model: User,
-            attributes : {
-              exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password']
-            }
-          },
-          {
-            model: Comments,
-            include: [
-              {
-                model: User,
-                attributes : {
-                  exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password'],
-                },
-              },
-            ],
-          order: [["updatedAt", "desc"]],
-            attributes : {
-              exclude : [ 'postId', 'updatedAt', ]
-            }
-          },
-          {
-            model: Media,
-            as : 'medias',
-            attributes : {
-              exclude : ['createdAt', 'updatedAt', 'id']
-            }
-          },
-          {
-            model: Likes,
-            attributes : {
-              exclude : ['createdAt', 'updatedAt']
-            }
-          },
-        ],
-        order: [["updatedAt", "desc"]],
-      });
-      res.status(200).send({
+      return res.status(200).send({
         statusCode: '200',
         status: 'success input data',
-        data: getPosts,
-      });
+        data: [],
+      })
+
     }
     // getPosts =  getPosts.filter((org => org.tags.some(tag => tag.id == tagId)))
 
@@ -255,7 +279,7 @@ exports.likePost = async (request, res) => {
     if (error) {
       return res.status(400).send(Boom.badRequest(error.details[0].message));
     }
-    const { postId  } = request.body;
+    const { postId } = request.body;
     const userId = request.userId
 
     const checkUserAlreadyLikes = await Likes.findOne({
@@ -263,8 +287,8 @@ exports.likePost = async (request, res) => {
         likedById: userId,
       },
     });
-    let response 
-    if ( checkUserAlreadyLikes ) {
+    let response
+    if (checkUserAlreadyLikes) {
       await Likes.destroy({
         where: {
           likedById: userId,
@@ -275,9 +299,9 @@ exports.likePost = async (request, res) => {
         status: 'success Unliked',
       });
     } else {
-        await Likes.create({
+      await Likes.create({
         likedById: userId,
-        postId : postId
+        postId: postId
       });
       res.status(200).send({
         statusCode: '200',
@@ -298,14 +322,14 @@ const __postMediaToDB = async (request) => {
   try {
     const media = request.files.media_files;
     const arr = media.map((item) => {
-      return { media_url: baseUrlFile + "post-media/" + item.filename}
+      return { media_url: baseUrlFile + "post-media/" + item.filename }
     });
     // add to db
-    const inputData = await Media.bulkCreate(arr, 
-    {
-        fields:["media_url"] 
-    } );
-  return inputData
+    const inputData = await Media.bulkCreate(arr,
+      {
+        fields: ["media_url"]
+      });
+    return inputData
   } catch (error) {
     console.log(error)
   }
