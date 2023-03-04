@@ -31,6 +31,17 @@ exports.postUserProfileData = async (request, res) => {
       city,
     });
 
+    await User.update(
+      {
+        thumbnail : image ? baseUrlFile + "user-profile-picture/" + image : "",
+      },
+      {
+        where: {
+          id: userId,
+        },
+      }
+    );
+    
     connectId.reduce(async (result, item) => {
       let tmpData;
         tmpData = {connectId:item, profileId: createProfile.id}

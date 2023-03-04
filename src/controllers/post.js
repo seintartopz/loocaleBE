@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Post, User, Comments, Media, PostMedia, PostCategories, Connect, Likes } = require('../../models');
+const { Post, User, Comments, Media, PostMedia, PostCategories, Connect, Likes, Profiles } = require('../../models');
 const fs = require('fs');
 const Boom = require('boom');
 const validationHelper = require('../helpers/validationHelper');
@@ -62,59 +62,178 @@ exports.postText = async (request, res) => {
 
 exports.getAllPosts = async (request, res) => {
   try {
-    const { postText, location } = request.body;
+    const { connectId, location } = request.query;
     const userId = request.userId
-
-    const getPosts = await Post.findAll({
-      include: [
-        {
-          model: Connect,
-          as : 'Categories',
-          attributes : {
-            exclude : ['createdAt', 'updatedAt']
-          }
+    let getPosts
+    if (location && location !== null) {
+      getPosts = await Post.findAll({
+        where: {
+          location: location,
         },
-        {
-          model: User,
-          attributes : {
-            exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password', 'id']
-          }
-        },
-        {
-          model: Comments,
-          include: [
-            {
-              model: User,
-              attributes : {
-                exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password', 'id']
-              }
+        include: [
+          {
+            model: Connect,
+            as : 'Categories',
+            attributes : {
+              exclude : ['createdAt', 'updatedAt']
+            }
+          },
+          {
+            model: User,
+            attributes : {
+              exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password']
+            }
+          },
+          {
+            model: Comments,
+            include: [
+              {
+                model: User,
+                attributes : {
+                  exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password'],
+                },
+              },
+            ],
+          order: [["updatedAt", "desc"]],
+            attributes : {
+              exclude : [ 'postId', 'updatedAt', ]
+            }
+          },
+          {
+            model: Media,
+            as : 'medias',
+            attributes : {
+              exclude : ['createdAt', 'updatedAt', 'id']
+            }
+          },
+          {
+            model: Likes,
+            attributes : {
+              exclude : ['createdAt', 'updatedAt']
+            }
+          },
+        ],
+        order: [["updatedAt", "desc"]],
+      });
+      res.status(200).send({
+        statusCode: '200',
+        status: 'success input data',
+        data: getPosts,
+      });
+    } else if (connectId) {
+      getPosts = await Post.findAll({
+        include: [
+          {
+            model: Connect,
+            as : 'Categories',
+            through : {          
+              where: {
+              connectId: connectId,
             },
-          ],
-          attributes : {
-            exclude : [ 'postId', 'updatedAt', ]
-          }
-        },
-        {
-          model: Media,
-          as : 'medias',
-          attributes : {
-            exclude : ['createdAt', 'updatedAt', 'id']
-          }
-        },
-        {
-          model: Likes,
-          attributes : {
-            exclude : ['createdAt', 'updatedAt']
-          }
-        }
-      ],
-    });
+          },
+  
+            attributes : {
+              exclude : ['createdAt', 'updatedAt']
+            }
+          },
+          {
+            model: User,
+            attributes : {
+              exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password']
+            }
+          },
+          {
+            model: Comments,
+            include: [
+              {
+                model: User,
+                attributes : {
+                  exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password'],
+                },
+              },
+            ],
+          order: [["updatedAt", "desc"]],
+            attributes : {
+              exclude : [ 'postId', 'updatedAt', ]
+            }
+          },
+          {
+            model: Media,
+            as : 'medias',
+            attributes : {
+              exclude : ['createdAt', 'updatedAt', 'id']
+            }
+          },
+          {
+            model: Likes,
+            attributes : {
+              exclude : ['createdAt', 'updatedAt']
+            }
+          },
+        ],
+        order: [["updatedAt", "desc"]],
+      });
+      res.status(200).send({
+        statusCode: '200',
+        status: 'success input data',
+        data: getPosts,
+      })
+    } else {
+      getPosts = await Post.findAll({
+        include: [
+          {
+            model: Connect,
+            as : 'Categories',
+            attributes : {
+              exclude : ['createdAt', 'updatedAt']
+            }
+          },
+          {
+            model: User,
+            attributes : {
+              exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password']
+            }
+          },
+          {
+            model: Comments,
+            include: [
+              {
+                model: User,
+                attributes : {
+                  exclude : ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password'],
+                },
+              },
+            ],
+          order: [["updatedAt", "desc"]],
+            attributes : {
+              exclude : [ 'postId', 'updatedAt', ]
+            }
+          },
+          {
+            model: Media,
+            as : 'medias',
+            attributes : {
+              exclude : ['createdAt', 'updatedAt', 'id']
+            }
+          },
+          {
+            model: Likes,
+            attributes : {
+              exclude : ['createdAt', 'updatedAt']
+            }
+          },
+        ],
+        order: [["updatedAt", "desc"]],
+      });
+      res.status(200).send({
+        statusCode: '200',
+        status: 'success input data',
+        data: getPosts,
+      });
+    }
+    // getPosts =  getPosts.filter((org => org.tags.some(tag => tag.id == tagId)))
 
-    res.status(200).send({
-      statusCode: '200',
-      status: 'success input data',
-      data: getPosts,
-    });
+
   } catch (error) {
     console.log(error);
     res.status(500).send({
