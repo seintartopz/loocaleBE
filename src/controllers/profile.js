@@ -26,7 +26,7 @@ exports.postUserProfileData = async (request, res) => {
 
     const createProfile = await Profiles.create({
       userId,
-      avatar: baseUrlFile + image,
+      avatar: baseUrlFile + "user-profile-picture/" + image,
       province,
       city,
     });
