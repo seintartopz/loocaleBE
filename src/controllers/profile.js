@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Profiles, ProfileCommunities } = require('../../models');
+const { Profiles, ProfileCommunities, User } = require('../../models');
 const fs = require('fs');
 const Boom = require('boom');
 const validationHelper = require('../helpers/validationHelper');
@@ -22,7 +22,16 @@ exports.postUserProfileData = async (request, res) => {
 
     const { province, city, connectId } = request.body;
     const userId = request.userId
-
+    await User.update(
+      {
+        isFirstSignIn: false,
+      },
+      {
+        where: {
+          id: { [Op.like]: `%${decodedToken.userId}%` },
+        },
+      }
+    );
     const createProfile = await Profiles.create({
       userId,
       avatar: baseUrlFile + image,
