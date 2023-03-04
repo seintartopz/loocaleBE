@@ -13,6 +13,7 @@ exports.postUserProfileData = async (request, res) => {
     if (error) {
       return res.status(400).send(Boom.badRequest(error.details[0].message));
     }
+    let tmpArr2 = []
     let image;
     if (request.files.profileImage == null) {
       image = defaultProfilePicture;
@@ -22,7 +23,24 @@ exports.postUserProfileData = async (request, res) => {
 
     const { province, city, connectId } = request.body;
     const userId = request.userId
-    await User.update(
+    
+    const createProfile = await Profiles.create({
+      userId,
+      avatar: baseUrlFile + image,
+      province,
+      city,
+    });
+
+    connectId.reduce(async (result, item) => {
+      let tmpData;
+        tmpData = {connectId:item, postId: createProfile.id}
+        tmpArr2.push(tmpData)
+      return Promise.resolve(result);
+      }, Promise.resolve([]));
+
+
+    await ProfileCommunities.bulkCreate(tmpArr2);
+    const response = await User.update(
       {
         isFirstSignIn: false,
       },
@@ -32,16 +50,6 @@ exports.postUserProfileData = async (request, res) => {
         },
       }
     );
-    const createProfile = await Profiles.create({
-      userId,
-      avatar: baseUrlFile + image,
-      province,
-      city,
-    });
-    const response = await ProfileCommunities.create({
-      profileId: createProfile.id,
-      connectId,
-    });
     res.status(200).send({
       statusCode: '200',
       status: 'success input data',

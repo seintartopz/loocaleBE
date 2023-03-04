@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { User } = require('../../models');
+const { User, Profiles } = require('../../models');
 const fs = require('fs');
 const Boom = require('boom');
 const validationHelper = require('../helpers/validationHelper');
@@ -336,6 +336,14 @@ exports.getUserDetail = async (req, res) => {
       where: {
         id,
       },
+      include: [
+        {
+          model: Profiles,
+          attributes : {
+            exclude : ['createdAt', 'updatedAt']
+          }
+        }
+      ],
       attributes: {
         exclude: ['createdAt', 'updatedAt'],
       },
