@@ -23,7 +23,7 @@ exports.postUserProfileData = async (request, res) => {
 
     const { province, city, connectId } = request.body;
     const userId = request.userId
-    
+
     const createProfile = await Profiles.create({
       userId,
       avatar: baseUrlFile + image,
@@ -46,7 +46,7 @@ exports.postUserProfileData = async (request, res) => {
       },
       {
         where: {
-          id: { [Op.like]: `%${decodedToken.userId}%` },
+          id: userId,
         },
       }
     );
