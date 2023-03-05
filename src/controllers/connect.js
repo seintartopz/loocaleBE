@@ -41,6 +41,7 @@ exports.getAllConnectData = async (req, res) => {
     res.status(500).send({
       status: 'failed',
       message: 'server error',
+      error: error
     });
   }
 };
