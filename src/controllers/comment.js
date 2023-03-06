@@ -1,10 +1,10 @@
 const { Op } = require('sequelize');
-const { Post, User, Comments} = require('../../models');
+const { Post, User, Comments } = require('../../models');
 const fs = require('fs');
 const Boom = require('boom');
 const validationHelper = require('../helpers/validationHelper');
 require('dotenv').config();
-const baseUrlFile = 'http://localhost:5000/';
+const baseUrlFile = 'http://194.59.165.97:5000';
 const defaultProfilePicture = '1670037246598-istockphoto-522855255-612x612';
 
 exports.postComment = async (request, res) => {
@@ -14,7 +14,7 @@ exports.postComment = async (request, res) => {
       return res.status(400).send(Boom.badRequest(error.details[0].message));
     }
 
-    const { commentText, postId} = request.body;
+    const { commentText, postId } = request.body;
     const userId = request.userId
 
     const createProfile = await Comments.create({

@@ -6,7 +6,7 @@ exports.createConnectData = async (req, res) => {
 
     const addData = await Connect.create({
       ...req.body,
-      background: 'http://localhost:5000/' + background,
+      background: 'http://194.59.165.97:5000' + background,
     });
 
     res.status(200).send({
