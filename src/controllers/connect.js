@@ -24,6 +24,7 @@ exports.createConnectData = async (req, res) => {
 };
 
 exports.getAllConnectData = async (req, res) => {
+  console.log(1111, Connect)
   try {
     const getAllData = await Connect.findAll({
       attributes: {
