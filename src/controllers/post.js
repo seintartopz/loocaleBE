@@ -4,7 +4,7 @@ const fs = require('fs');
 const Boom = require('boom');
 const validationHelper = require('../helpers/validationHelper');
 require('dotenv').config();
-const baseUrlFile = 'http://localhost:5000/';
+const baseUrlFile = 'http://194.59.165.97:5000';
 const defaultProfilePicture = '1670037246598-istockphoto-522855255-612x612';
 
 exports.postText = async (request, res) => {

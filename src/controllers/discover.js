@@ -9,7 +9,7 @@ exports.createDiscover = async (req, res) => {
 
     const datafilm = await discover.create({
       ...req.body,
-      image: "http://localhost:5000/" + image,
+      image: "http://194.59.165.97:5000" + image,
     });
 
     res.status(200).send({

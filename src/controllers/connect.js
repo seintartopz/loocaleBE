@@ -6,7 +6,7 @@ exports.createConnectData = async (req, res) => {
 
     const addData = await Connect.create({
       ...req.body,
-      background: 'http://localhost:5000/' + background,
+      background: 'http://194.59.165.97:5000' + background,
     });
 
     res.status(200).send({
@@ -24,6 +24,7 @@ exports.createConnectData = async (req, res) => {
 };
 
 exports.getAllConnectData = async (req, res) => {
+  console.log(1111, Connect)
   try {
     const getAllData = await Connect.findAll({
       attributes: {
@@ -41,6 +42,7 @@ exports.getAllConnectData = async (req, res) => {
     res.status(500).send({
       status: 'failed',
       message: 'server error',
+      error: error
     });
   }
 };
