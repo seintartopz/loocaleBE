@@ -2,10 +2,10 @@ const express = require('express');
 
 const router = express.Router();
 
-const { auth } = require('../middlewares/auth');
-const { uploadFile } = require('../middlewares/uploadFile');
-const { uploadUserPicture } = require('../middlewares/uploadUserPicture');
-const { uploadPostsMedia } = require('../middlewares/uploadPostMedia');
+const { auth } = require('../middlewares/auth.js');
+const { uploadFile } = require('../middlewares/UploadFile.js');
+const { uploadUserPicture } = require('../middlewares/uploadUserPicture.js');
+const { uploadPostsMedia } = require('../middlewares/uploadPostMedia.js');
 
 const { createDiscover, getAllDiscover, getDiscoverPageOptions } = require('../controllers/discover');
 const { createConnectData, getAllConnectData } = require('../controllers/connect');

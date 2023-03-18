@@ -1,7 +1,7 @@
 {
   "development": {
     "username": "root",
-    "password": null,
+    "password": "tanyaerik",
     "database": "loocaledb",
     "host": "127.0.0.1",
     "dialect": "mysql"
@@ -16,8 +16,8 @@
   "production": {
     "username": "root",
     "password": "tanyaerik",
-    "database": "database_production",
-    "host": "http://194.59.165.97/",
+    "database": "loocaledb",
+    "host": "127.0.0.1",
     "dialect": "mysql"
   }
 }
