@@ -3,8 +3,9 @@ const { Profiles, ProfileCommunities, User } = require('../../models');
 const fs = require('fs');
 const Boom = require('boom');
 const validationHelper = require('../helpers/validationHelper');
-require('dotenv').config();
-const baseUrlFile = 'http://194.59.165.97:5000';
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../../.env")});
+const baseUrlFile = 'https://api.loocale.id/';
 const defaultProfilePicture = '1670037246598-istockphoto-522855255-612x612';
 
 exports.postUserProfileData = async (request, res) => {

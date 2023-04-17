@@ -1,4 +1,5 @@
 const multer = require("multer");
+const path = require("path");
 
 exports.uploadFile = (imageFile, videoFile) => {
   //initialisasi multer diskstorage
@@ -7,7 +8,7 @@ exports.uploadFile = (imageFile, videoFile) => {
   const fileName = "";
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "uploads"); //lokasi penyimpan file
+      cb(null, path.resolve(__dirname, "../../uploads")); //lokasi penyimpan file
     },
     filename: function (req, file, cb) {
       cb(null, Date.now() + "-" + file.originalname.replace(/\s/g, "")); //rename nama file by date now + nama original

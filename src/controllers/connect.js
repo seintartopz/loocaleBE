@@ -6,7 +6,7 @@ exports.createConnectData = async (req, res) => {
 
     const addData = await Connect.create({
       ...req.body,
-      background: 'http://194.59.165.97:5000' + background,
+      background: 'https://api.loocale.id/' + background,
     });
 
     res.status(200).send({

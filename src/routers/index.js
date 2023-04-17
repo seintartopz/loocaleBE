@@ -68,7 +68,7 @@ router.post('/userprofiles', uploadUserPicture('profileImage'), auth, postUserPr
 // Create Post API
 router.post('/create-post', auth, uploadPostsMedia('media_files'), postText);
 router.post('/like-post', auth, likePost);
-router.get('/posts', auth, getAllPosts);
+router.get('/posts', getAllPosts);
 
 // Comment API
 router.post('/comment', auth, postComment);

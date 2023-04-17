@@ -7,7 +7,8 @@ const { generateOTP } = require('../helpers/otpHelper');
 const { sendEmail, sendForgotPassToEmail } = require('../helpers/sendEmailHelper');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../../.env")});
 const secretKey = process.env.SECRETKEY;
 const jwt_decode = require('jwt-decode');
 const { generatePassword } = require('../helpers/passwordHelper');
@@ -580,10 +581,12 @@ exports.signUpGoogle = async (request, res) => {
       res.send({
         status: 'success',
         message: 'Successfully Create User',
-        data: {
-          users: email,
+       data: {
+        user: {
+          email,
           token,
         },
+      },
       });
     } else {
       token = jwt.sign(
@@ -599,9 +602,11 @@ exports.signUpGoogle = async (request, res) => {
         status: 'success',
         message: 'Logging user in',
         data: {
-          users: email,
-          token,
-        },
+         user: {
+           email,
+           token,
+         },
+       },
       });
     }
 
@@ -694,7 +699,7 @@ exports.loginViaGoogle = async (request, res) => {
       secretKey
     );
 
-    res.send({
+ res.send({
       status: 'success',
       data: {
         user: {

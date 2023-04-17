@@ -3,8 +3,9 @@ const { Post, User, Comments, Media, PostMedia, PostCategories, Connect, Likes, 
 const fs = require('fs');
 const Boom = require('boom');
 const validationHelper = require('../helpers/validationHelper');
-require('dotenv').config();
-const baseUrlFile = 'http://194.59.165.97:5000';
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../../.env" )});
+const baseUrlFile = 'https://api.loocale.id/';
 const defaultProfilePicture = '1670037246598-istockphoto-522855255-612x612';
 
 exports.postText = async (request, res) => {
@@ -285,6 +286,7 @@ exports.likePost = async (request, res) => {
     const checkUserAlreadyLikes = await Likes.findOne({
       where: {
         likedById: userId,
+	postId:postId
       },
     });
     let response
@@ -292,6 +294,7 @@ exports.likePost = async (request, res) => {
       await Likes.destroy({
         where: {
           likedById: userId,
+	  postId:postId
         },
       });
       res.status(200).send({
