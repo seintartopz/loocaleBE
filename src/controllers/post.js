@@ -274,6 +274,86 @@ exports.getAllPosts = async (request, res) => {
   }
 };
 
+exports.getPostById = async (req, res) => {
+	try {
+    const { id } = req.params;
+
+		if (!id) {
+			res.status(400).send({
+				status: "failed",
+				message: "No ID in params",
+			})
+		}
+
+		const post = await Post.findOne({
+			where: {
+				id
+			},
+			include: [
+        {
+          model: Connect,
+          as: 'Categories',
+          attributes: {
+            exclude: ['createdAt', 'updatedAt']
+          }
+        },
+        {
+          model: User,
+          attributes: {
+            exclude: ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password']
+          }
+        },
+        {
+          model: Comments,
+          include: [
+            {
+              model: User,
+              attributes: {
+                exclude: ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password'],
+              },
+            },
+          ],
+          order: [["updatedAt", "desc"]],
+          attributes: {
+            exclude: ['postId', 'updatedAt',]
+          }
+        },
+        {
+          model: Media,
+          as: 'medias',
+          attributes: {
+            exclude: ['createdAt', 'updatedAt', 'id']
+          }
+        },
+        {
+          model: Likes,
+          attributes: {
+            exclude: ['createdAt', 'updatedAt']
+          }
+        },
+      ],
+		})
+
+		if (!post) {
+			res.status(404).send({
+				status: "failed",
+				message: "Post not found"
+			})
+		}
+		res.status(200).send({
+			status: "200",
+			message: "Success get post by ID",
+			data: post
+		})
+	} catch (err) {
+		console.log(err);
+    res.status(500).send({
+      status: 'failed',
+      message: 'server error',
+    });
+	}
+}
+
 exports.likePost = async (request, res) => {
   try {
     const { error } = validationHelper.likePostValidation(request.body);

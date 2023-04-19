@@ -29,7 +29,7 @@ const { getProvinces, getCities, getCitiesName } = require('../controllers/area'
 
 const { postUserProfileData } = require('../controllers/profile');
 
-const { postText, getAllPosts, likePost } = require('../controllers/post');
+const { postText, getAllPosts, likePost, getPostById } = require('../controllers/post');
 const { postComment } = require('../controllers/comment');
 
 // discover api
@@ -69,6 +69,7 @@ router.post('/userprofiles', uploadUserPicture('profileImage'), auth, postUserPr
 router.post('/create-post', auth, uploadPostsMedia('media_files'), postText);
 router.post('/like-post', auth, likePost);
 router.get('/posts', getAllPosts);
+router.get('/posts/:id', getPostById);
 
 // Comment API
 router.post('/comment', auth, postComment);
