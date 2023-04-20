@@ -1,4 +1,5 @@
-const { Connect } = require('../../models');
+const { Connect, PostCategories } = require('../../models');
+const sequelize = require("sequelize");
 
 exports.createConnectData = async (req, res) => {
   try {
@@ -24,12 +25,13 @@ exports.createConnectData = async (req, res) => {
 };
 
 exports.getAllConnectData = async (req, res) => {
-  console.log(1111, Connect)
   try {
     const getAllData = await Connect.findAll({
       attributes: {
         exclude: ['createdAt', 'updatedAt'],
+				include: [[sequelize.literal('(SELECT COUNT(*) FROM PostCategories WHERE PostCategories.connectId = Connect.id)'), 'count']]
       },
+			order: [[sequelize.literal('count'), 'DESC']]
     });
 
     res.status(200).send({
