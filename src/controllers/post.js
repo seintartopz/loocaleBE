@@ -4,7 +4,7 @@ const fs = require('fs');
 const Boom = require('boom');
 const validationHelper = require('../helpers/validationHelper');
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "../../.env" )});
+require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 const baseUrlFile = 'https://api.loocale.id/';
 const defaultProfilePicture = '1670037246598-istockphoto-522855255-612x612';
 
@@ -275,21 +275,21 @@ exports.getAllPosts = async (request, res) => {
 };
 
 exports.getPostById = async (req, res) => {
-	try {
+  try {
     const { id } = req.params;
 
-		if (!id) {
-			res.status(400).send({
-				status: "failed",
-				message: "No ID in params",
-			})
-		}
+    if (!id) {
+      res.status(400).send({
+        status: "failed",
+        message: "No ID in params",
+      })
+    }
 
-		const post = await Post.findOne({
-			where: {
-				id
-			},
-			include: [
+    const post = await Post.findOne({
+      where: {
+        id
+      },
+      include: [
         {
           model: Connect,
           as: 'Categories',
@@ -332,26 +332,26 @@ exports.getPostById = async (req, res) => {
           }
         },
       ],
-		})
+    })
 
-		if (!post) {
-			res.status(404).send({
-				status: "failed",
-				message: "Post not found"
-			})
-		}
-		res.status(200).send({
-			status: "200",
-			message: "Success get post by ID",
-			data: post
-		})
-	} catch (err) {
-		console.log(err);
+    if (!post) {
+      res.status(404).send({
+        status: "failed",
+        message: "Post not found"
+      })
+    }
+    res.status(200).send({
+      status: "200",
+      message: "Success get post by ID",
+      data: post
+    })
+  } catch (err) {
+    console.log(err);
     res.status(500).send({
       status: 'failed',
       message: 'server error',
     });
-	}
+  }
 }
 
 exports.likePost = async (request, res) => {
@@ -366,7 +366,7 @@ exports.likePost = async (request, res) => {
     const checkUserAlreadyLikes = await Likes.findOne({
       where: {
         likedById: userId,
-	postId:postId
+        postId: postId
       },
     });
     let response
@@ -374,7 +374,7 @@ exports.likePost = async (request, res) => {
       await Likes.destroy({
         where: {
           likedById: userId,
-	  postId:postId
+          postId: postId
         },
       });
       res.status(200).send({
@@ -416,4 +416,130 @@ const __postMediaToDB = async (request) => {
   } catch (error) {
     console.log(error)
   }
+};
+
+
+exports.deletePosts = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const checkPosts = await Post.findOne({
+      where: {
+        id,
+      },
+    });
+    const checkMedia = await PostMedia.findOne({
+      where: {
+        postId: id,
+      },
+    });
+    if (checkMedia) {
+      const getMediaFileName = await Media.findOne({
+        where: {
+          id: checkMedia.mediaId,
+        },
+      });
+      const mediaFileName = getMediaFileName.media_url.slice(34);
+      console.log(mediaFileName)
+      fs.unlink(`uploads/post-media/${mediaFileName}`, function (err) {
+        if (err) throw err;
+        // if no error, file has been deleted successfully
+        console.log(`File ${mediaFileName} has been deleted!`);
+      })
+    }
+
+    if (checkPosts) {
+      PostCategories.destroy({
+        where: {
+          postId: id,
+        },
+      });
+      PostMedia.destroy({
+        where: {
+          postId: id,
+        },
+      });
+      Post.destroy({
+        where: {
+          id,
+        },
+      });
+
+      return res.status(200).send({
+        status: 'success',
+        message: 'delete success',
+        data: {
+          id,
+        },
+      });
+    } else res.status(404).send({
+      status: 'failed',
+      message: 'no data found',
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: 'failed',
+      message: 'server error',
+    });
+  }
+};
+
+
+exports.notifPosts = async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    const checkPosts = await Post.findAll({
+      where: {
+        userId: userId,
+      },
+      include: [
+        {
+          model: Comments,
+          include: [
+            {
+              model: User,
+              attributes: {
+                exclude: ['createdAt', 'updatedAt', 'isActive', 'OTP', 'password'],
+              },
+            },
+          ],
+          order: [["updatedAt", "desc"]],
+          attributes: {
+            exclude: ['postId', 'updatedAt',]
+          }
+        },
+        {
+          model: Likes,
+          attributes: {
+            exclude: ['createdAt', 'updatedAt']
+          }
+        },
+      ],
+    });
+
+    const likesCount = await sum(checkPosts.map((item) => item.Likes.length))
+    const commentCount = await sum(checkPosts.map((item) => item.Comments.length))
+
+    return res.status(200).send({
+      status: 'success',
+      data: {
+        likesCount,
+        commentCount
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: 'failed',
+      message: 'server error',
+    });
+  }
+};
+
+const sum = async (arr) => {
+  const sumValues = arr.reduce((partialSum, arr) => partialSum + arr, 0)
+  console.log(sumValues)
+  return sumValues
 };
