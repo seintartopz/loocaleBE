@@ -519,15 +519,21 @@ exports.notifPosts = async (req, res) => {
       ],
     });
 
-    const likesCount = await sum(checkPosts.map((item) => item.Likes.length))
-    const commentCount = await sum(checkPosts.map((item) => item.Comments.length))
+    const notifResponse = checkPosts.map((item) => {
+      const response = {
+        idPost: item.id,
+        postText: item.postText,
+        likesCount: item.Likes.length,
+        commentCount: item.Comments.length
+      }
+      return response
+    });
+
+
 
     return res.status(200).send({
       status: 'success',
-      data: {
-        likesCount,
-        commentCount
-      },
+      data: notifResponse
     });
   } catch (error) {
     console.log(error);
