@@ -8,11 +8,24 @@ const { sendEmail, sendForgotPassToEmail } = require('../helpers/sendEmailHelper
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "../../.env")});
+require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 const secretKey = process.env.SECRETKEY;
 const jwt_decode = require('jwt-decode');
 const { generatePassword } = require('../helpers/passwordHelper');
 
+// Private Function
+const changePhoneNumberToDefault62 = (phone_number) => {
+  if (phone_number.charAt(0) === '+') {
+    phone_number = phone_number.substring(1);
+    console.log(111, phone_number)
+  } else if (phone_number.charAt(0) === '0') {
+    phone_number = `62${phone_number.substring(1)}`;
+  }
+  return phone_number
+};
+
+
+// Public Function
 exports.addEmail = async (request, res) => {
   try {
     const { error } = validationHelper.addEmailValidation(request.body);
@@ -179,7 +192,7 @@ exports.signUpForm = async (request, res) => {
       return res.status(400).send(Boom.badRequest(error.details[0].message));
     }
 
-    const { email, full_name, user_name, password } = request.body;
+    const { email, full_name, user_name, password, phone_number } = request.body;
     const passwordHashed = await bcrypt.hash(password, 10);
     const checkExistingUser = await User.findOne({
       where: {
@@ -191,7 +204,11 @@ exports.signUpForm = async (request, res) => {
         user_name: user_name,
       },
     });
-    console.log('existing user', checkExistingUser);
+    let validatedPhoneNumber = ''
+    if (phone_number) {
+      return validatedPhoneNumber = changePhoneNumberToDefault62(phone_number)
+    }
+
     if (checkExistingUserName) {
       return res.status(400).send(Boom.badRequest('User Name Already Taken'));
     } else if (checkExistingUser === null) {
@@ -202,6 +219,7 @@ exports.signUpForm = async (request, res) => {
           full_name,
           user_name,
           password: passwordHashed,
+          phone_number: validatedPhoneNumber
         },
         {
           where: {
@@ -214,6 +232,8 @@ exports.signUpForm = async (request, res) => {
       {
         id: checkExistingUser.id,
         email: checkExistingUser.email,
+        phone_number: checkExistingUser.phone_number,
+        user_role: checkExistingUser.user_role,
         user_name,
         full_name,
       },
@@ -341,8 +361,8 @@ exports.getUserDetail = async (req, res) => {
       include: [
         {
           model: Profiles,
-          attributes : {
-            exclude : ['createdAt', 'updatedAt']
+          attributes: {
+            exclude: ['createdAt', 'updatedAt']
           }
         }
       ],
@@ -502,11 +522,9 @@ exports.loginUser = async (request, res) => {
     // }
 
     const isValidPassword = await bcrypt.compare(password, response.password);
-
     if (!isValidPassword) {
       return res.status(400).send(Boom.badRequest("Email and Password don't match"));
     }
-    console.log('response: ', response);
 
     const token = jwt.sign(
       {
@@ -514,6 +532,8 @@ exports.loginUser = async (request, res) => {
         user_name: response.user_name,
         full_name: response.full_name,
         thumbnail: response.thumbnail,
+        phone_number: response.phone_number,
+        user_role: response.user_role,
       },
       secretKey
     );
@@ -581,18 +601,18 @@ exports.signUpGoogle = async (request, res) => {
       res.send({
         status: 'success',
         message: 'Successfully Create User',
-       data: {
-        user: {
-          email,
-          token,
+        data: {
+          user: {
+            email,
+            token,
+          },
         },
-      },
       });
     } else {
       token = jwt.sign(
         {
           id: checkExistingUser.id,
-					full_name: checkExistingUser.full_name,
+          full_name: checkExistingUser.full_name,
           user_name: checkExistingUser.user_name,
           thumbnail: checkExistingUser.thumbnail
         },
@@ -602,11 +622,11 @@ exports.signUpGoogle = async (request, res) => {
         status: 'success',
         message: 'Logging user in',
         data: {
-         user: {
-           email,
-           token,
-         },
-       },
+          user: {
+            email,
+            token,
+          },
+        },
       });
     }
 
@@ -694,12 +714,14 @@ exports.loginViaGoogle = async (request, res) => {
         id: checkExistingUser.id,
         full_name: checkExistingUser.full_name,
         user_name: checkExistingUser.user_name,
+        phone_number: checkExistingUser.phone_number,
+        user_role: checkExistingUser.user_role,
         thumbnail: '',
       },
       secretKey
     );
 
- res.send({
+    res.send({
       status: 'success',
       data: {
         user: {

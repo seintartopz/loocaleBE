@@ -34,6 +34,12 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: true,
       },
+      phone_number: {
+        type: Sequelize.STRING,
+      },
+      user_role: {
+        type: Sequelize.STRING,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

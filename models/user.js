@@ -30,6 +30,8 @@ module.exports = (sequelize, DataTypes) => {
       thumbnail: DataTypes.STRING,
       isActive: DataTypes.BOOLEAN,
       isFirstSignIn: DataTypes.BOOLEAN,
+      phone_number: DataTypes.STRING,
+      user_role: DataTypes.STRING,
     },
     {
       sequelize,
