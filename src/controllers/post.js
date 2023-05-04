@@ -522,7 +522,7 @@ exports.notifPosts = async (req, res) => {
     const notifResponse = checkPosts.map((item) => {
       const response = {
         idPost: item.id,
-        postText: item.postText,
+        postText: item.postText.split(" ").slice(0, 4).join(" "),
         likesCount: item.Likes.length,
         commentCount: item.Comments.length
       }
