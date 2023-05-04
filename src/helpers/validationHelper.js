@@ -39,6 +39,7 @@ const updateUserDataValidation = (data) => {
     email: Joi.string().required().email(),
     full_name: Joi.string().required(),
     user_name: Joi.string().required(),
+    phone_number: Joi.string().optional(),
     password: Joi.string().regex(strongPasswordRegex).error(stringPassswordError).required(),
   });
   return schema.validate(data);
