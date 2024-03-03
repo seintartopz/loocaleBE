@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "../../.env")});
+require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 const secretKey = process.env.SECRETKEY;
 
 exports.auth = (request, res, next) => {
@@ -16,12 +16,12 @@ exports.auth = (request, res, next) => {
     }
 
     const verified = jwt.verify(token, secretKey);
-    console.log(verified)
     request.userId = verified.id;
+    request.headers.user_role = verified.user_role;
 
     next();
   } catch (error) {
-    console.log(111, error);
+    11(111, error);
     res.status(500).send({
       status: "failed",
       message: "server error",

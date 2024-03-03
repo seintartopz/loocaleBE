@@ -22,7 +22,8 @@ const {
   loginViaGoogle,
   forgotPassword,
   resetPassword,
-  getUserDetail
+  getUserDetail,
+  updateRoleUser
 } = require('../controllers/user');
 
 const { getProvinces, getCities, getCitiesName } = require('../controllers/area');
@@ -53,6 +54,7 @@ router.post('/user/login/google', loginViaGoogle);
 router.post('/user/validate/username', validateUsername);
 router.post('/user/forgot-password', forgotPassword);
 router.post('/user/reset-password', resetPassword);
+router.patch('/user/role', auth, updateRoleUser);
 
 //area api
 router.get('/provinces', getProvinces);

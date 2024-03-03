@@ -11,13 +11,13 @@ const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 const secretKey = process.env.SECRETKEY;
 const jwt_decode = require('jwt-decode');
+const _ = require('lodash')
 const { generatePassword } = require('../helpers/passwordHelper');
 
 // Private Function
 const changePhoneNumberToDefault62 = (phone_number) => {
   if (phone_number.charAt(0) === '+') {
     phone_number = phone_number.substring(1);
-    console.log(111, phone_number)
   } else if (phone_number.charAt(0) === '0') {
     phone_number = `62${phone_number.substring(1)}`;
   }
@@ -501,7 +501,6 @@ const validateUsernameOrEmail = async (email, username) => {
         user_name: username,
       },
     });
-    console.log('masuk bawah');
     return response;
   }
 };
@@ -759,7 +758,7 @@ exports.forgotPassword = async (request, res) => {
       },
       secretKey
     );
-    const linkReset = `http://localhost:3000/reset-password/${token}`;
+    const linkReset = `https://loocale.id/reset-password/${token}`;
 
     sendForgotPassToEmail(email, linkReset);
 
@@ -823,6 +822,85 @@ exports.resetPassword = async (request, res) => {
         },
       },
     });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: 'failed',
+      message: 'server error',
+    });
+  }
+};
+
+exports.updateRoleUser = async (request, res) => {
+  const { error } = validationHelper.updateUserRoleAndPhoneNumberValidation(request.body);
+  if (error) {
+    return res.status(400).send(Boom.badRequest(error));
+  }
+  const { email, phone_number, user_role } = request.body;
+  const userRole = request.headers.user_role
+  console.log(111, userRole)
+  try {
+    const isAdmin = _.isEqual(userRole === 'admin')
+    let response
+    if (isAdmin) {
+      if (userRole) {
+        response = await User.update(
+          {
+            user_role: user_role,
+          },
+          {
+            where: {
+              email: email,
+            },
+          }
+        );
+        res.send({
+          status: 'success',
+          message: 'Successfully update User Role',
+          data: {
+            response
+          },
+        });
+      } else if (phone_number) {
+        const validatedPhoneNumber = changePhoneNumberToDefault62(phone_number)
+        response = await User.update(
+          {
+            phone_number: validatedPhoneNumber,
+          },
+          {
+            where: {
+              email: email,
+            },
+          }
+        );
+      }
+      res.send({
+        status: 'success',
+        message: 'Successfully update Phone Number',
+        data: {
+          response
+        },
+      });
+    } else {
+      res.send(Boom.badRequest(
+        message = 'You Are not Eligible '
+      ))
+    }
+
+
+    // await User.update(
+    //   {
+    //     password: passwordHashed,
+    //   },
+    //   {
+    //     where: {
+    //       email: decodedToken.email,
+    //       id: decodedToken.idUser,
+    //     },
+    //   }
+    // );
+
+
   } catch (error) {
     console.log(error);
     res.status(500).send({

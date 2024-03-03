@@ -108,6 +108,15 @@ const createCommentTextValidation = (data) => {
   return schema.validate(data);
 };
 
+const updateUserRoleAndPhoneNumberValidation = (data) => {
+  const schema = Joi.object({
+    email: Joi.string().required(),
+    user_role: Joi.string().optional(),
+    phone_number: Joi.string().optional(),
+  });
+  return schema.validate(data);
+};
+
 module.exports = {
   addEmailValidation,
   OTPValidation,
@@ -121,5 +130,6 @@ module.exports = {
   createPostTextValidation,
   likePostValidation,
   createCommentTextValidation,
-  getCitiesName
+  getCitiesName,
+  updateUserRoleAndPhoneNumberValidation
 };
