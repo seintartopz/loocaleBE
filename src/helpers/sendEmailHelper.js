@@ -3,9 +3,9 @@ const nodemailer = require("nodemailer");
 // Public Function
 exports.sendEmail = (email, otp) => {
   const dataEmail = {
-    from: "loocale.id@gmail.com",
+    from: "team@loocale.id",
     to: email,
-    subject: "Verifikasi OTP",
+    subject: "Verifikasi OTP Loocale.id",
     html: `
       <div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2">
       <div style="margin:50px auto;width:70%;padding:20px 0">
@@ -30,11 +30,11 @@ exports.sendEmail = (email, otp) => {
 };
 
 
-exports.sendForgotPassToEmail = (email, linkReset) => {
+exports.sendForgotPassToEmail = (email, otp) => {
   const dataEmail = {
-    from: "loocale.id@gmail.com",
+    from: "team@loocale.id",
     to: email,
-    subject: "Link Reset Password Loocale",
+    subject: "OTP Reset Password Loocale.id",
     html: `
       <div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2">
       <div style="margin:50px auto;width:70%;padding:20px 0">
@@ -42,8 +42,8 @@ exports.sendForgotPassToEmail = (email, linkReset) => {
           <a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600using Loocale App</a>
         </div>
         <p style="font-size:1.1em">Hi, ${email}</p>
-        <p>Thank you for using Loocale App. Use the following Link Below to reset your password</p>
-        <a href=${linkReset}>Click Here</a>
+        <p>Thank you for using Loocale App. Use the following OTP to complete reset your password</p>
+        <h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">${otp}</h2>
         <p style="font-size:0.9em;">Regards,<br using Loocale App</p>
         <hr style="border:none;border-top:1px solid #eee" />
         <div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300">
@@ -63,8 +63,8 @@ const emailToUser = (dataEmail) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: "loocale.id@gmail.com",
-      pass: "ibyohxpysxomqofc",
+      user: "team@loocale.id",
+      pass: "ikfj swpm camy nbhs",
     },
   });
   transporter

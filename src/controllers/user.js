@@ -259,10 +259,10 @@ exports.validateUsername = async (request, res) => {
     if (error) {
       return res.status(400).send(Boom.badRequest(error.details[0].message));
     }
-    const { user_name } = request.body;
+    const { username } = request.body;
     const checkExistingUserName = await User.findOne({
       where: {
-        user_name: user_name,
+        user_name: username,
       },
     });
 
@@ -485,40 +485,31 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-const validateUsernameOrEmail = async (email, username) => {
-  let response;
-  if (email) {
-    response = await User.findOne({
-      where: {
-        email: email,
-      },
-    });
+const validateUsernameOrEmail = async (userIdentifier) => {
+  const response = await User.findOne({
+    where: {
+      [Op.or]: [
+        { email: userIdentifier },
+        { user_name: userIdentifier },
+      ],
+    },
+  });
+  return response;
 
-    return response;
-  } else {
-    response = await User.findOne({
-      where: {
-        user_name: username,
-      },
-    });
-    return response;
-  }
 };
 
 exports.loginUser = async (request, res) => {
   try {
-    const { email, password, username } = request.body;
+    const { userIdentifier, password } = request.body;
     const { error } = validationHelper.loginValidation(request.body);
     if (error) {
       return res.status(400).send(Boom.badRequest(error || error.details[0].message));
     }
-    const response = await validateUsernameOrEmail(email, username);
+    const response = await validateUsernameOrEmail(userIdentifier);
 
-    // if (checkExistingUserEmail === null && checkExistingUserName === null) {
-    //   return res.status(400).send(Boom.badRequest('No User Found'));
-    // } else if (checkExistingUserEmail.password === null || checkExistingUserName.password === null) {
-    //   return res.status(400).send(Boom.badRequest("You haven't validate OTP yet"));
-    // }
+    if (_.isEmpty(response)) {
+      return res.status(400).send(Boom.badRequest('No User Found'));
+    }
 
     const isValidPassword = await bcrypt.compare(password, response.password);
     if (!isValidPassword) {
@@ -540,9 +531,7 @@ exports.loginUser = async (request, res) => {
     res.send({
       status: 'success',
       data: {
-        user: {
-          token,
-        },
+        token,
       },
     });
   } catch (error) {
@@ -741,34 +730,25 @@ exports.loginViaGoogle = async (request, res) => {
 exports.forgotPassword = async (request, res) => {
   try {
     const { email } = request.body;
-
     const checkExistingUser = await User.findOne({
       where: {
         email: email,
       },
     });
-    if (checkExistingUser === null) {
+
+    if (_.isEmpty(checkExistingUser)) {
       return res.status(400).send(Boom.badRequest('No User Found'));
     }
-    const secretKey = process.env.SECRETKEY;
-    const token = jwt.sign(
-      {
-        idUser: checkExistingUser.id,
-        email: checkExistingUser.email,
-      },
-      secretKey
-    );
-    const linkReset = `https://loocale.id/reset-password/${token}`;
 
-    sendForgotPassToEmail(email, linkReset);
+    const OTP = generateOTP();
+
+    sendForgotPassToEmail(email, OTP);
 
     res.send({
       status: 'success',
       message: 'Reset Password Email Has Been Sent',
       data: {
-        user: {
-          email: checkExistingUser.email,
-        },
+        email: checkExistingUser.email,
       },
     });
   } catch (error) {
@@ -787,14 +767,12 @@ exports.resetPassword = async (request, res) => {
   }
 
   try {
-    const { email, password, token } = request.body;
+    const { email, password } = request.body;
     const passwordHashed = await bcrypt.hash(password, 10);
 
-    const decodedToken = jwt_decode(token);
     const checkExistingUser = await User.findOne({
       where: {
-        email: decodedToken.email,
-        id: decodedToken.idUser,
+        email: email,
       },
     });
     if (checkExistingUser === null) {
@@ -807,8 +785,7 @@ exports.resetPassword = async (request, res) => {
       },
       {
         where: {
-          email: decodedToken.email,
-          id: decodedToken.idUser,
+          email: email,
         },
       }
     );
@@ -817,9 +794,7 @@ exports.resetPassword = async (request, res) => {
       status: 'success',
       message: 'Successfully Re Set Password',
       data: {
-        user: {
-          email: checkExistingUser.email,
-        },
+        email: checkExistingUser.email,
       },
     });
   } catch (error) {

@@ -12,8 +12,7 @@ const addEmailValidation = (data) => {
 
 const loginValidation = (data) => {
   const schema = Joi.object({
-    email: Joi.string().optional().email(),
-    username: Joi.string().optional(),
+    userIdentifier: Joi.string().required(),
     password: Joi.string().required(),
   });
   return schema.validate(data);
@@ -47,7 +46,7 @@ const updateUserDataValidation = (data) => {
 
 const usernameValidation = (data) => {
   const schema = Joi.object({
-    user_name: Joi.string().required(),
+    username: Joi.string().required(),
   });
   return schema.validate(data);
 };
@@ -78,7 +77,7 @@ const postUserProfileData = (data) => {
 const resetPassValidation = (data) => {
   const schema = Joi.object({
     password: Joi.string().required(),
-    token: Joi.string().required(),
+    email: Joi.string().email().required(),
   });
   return schema.validate(data);
 };
